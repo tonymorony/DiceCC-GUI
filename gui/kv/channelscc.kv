@@ -1,0 +1,287 @@
+#:import ListAdapter kivy.adapters.listadapter.ListAdapter
+#:import App kivy.app
+#:import ScreenManagement gui.screens.screenmanagement
+#:import UserPage gui.screens.userpage
+#:import LoginPage gui.screens.loginpage
+#:import BetPlacePage gui.screens.betplacepage
+#:import TableCreateScreen gui.screens.tablecreation
+#:import TableListItemButton gui.buttons.tablebutton
+#:import CreateTableButton gui.buttons.createtable
+#:import RefreshTablesListButton gui.buttons.refreshlist
+#:import BetScreenButton gui.buttons.betscreenbutton
+#:import PlaceBetButton gui.buttons.placebetbutton
+#:import DiceLibrary lib.dicelib
+#:import RpcLibrary lib.rpclib
+#:import BetAmountSlider gui.sliders.betamountslider
+#:import OddsSlider gui.sliders.oddsslider
+
+ScreenManagement:
+    id: screenmanager
+    LoginPage:
+        id: loginpage
+    UserPage:
+        id: userpage
+    TableCreationPage:
+        id: tablecreation
+    BetPlacePage:
+        id: betplacepage
+
+<LoginPage>:
+    name: "login_page"
+    BoxLayout:
+        orientation: 'vertical'
+        Image:
+            source: 'gui/img/logo.png'
+            size_hint: 1, 0.3
+        GridLayout:
+            rows: 5
+            Label:
+                text: "RPC Server:"
+            TextInput:
+                id: rpcserver
+                text: DiceLibrary.ConfigReader().rpc_server
+            Label:
+                text: "RPC User:"
+            TextInput:
+                id: rpcuser
+                text: DiceLibrary.ConfigReader().rpc_user
+            Label:
+                text: "RPC Password:"
+            TextInput:
+                id: rpcpassword
+                text: DiceLibrary.ConfigReader().rpc_password
+            Label:
+                text: "RPC Port:"
+            TextInput:
+                id: port
+                text: DiceLibrary.ConfigReader().rpc_port
+            Label:
+                text: "Save login details?"
+            CheckBox:
+                id: savelogin
+                active: True
+        Button:
+            text: "Try to connect"
+            size_hint: 1, 0.2
+            on_release: root.verify_credentials()
+
+
+<UserPage>:
+    name: "user"
+    on_enter: tableslist.adapter.data = DiceLibrary.get_tables_list(app.rpc_connection)
+    on_enter: balance.text = DiceLibrary.get_balance(app.rpc_connection)
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.1
+            Label:
+                text: "Balance:"
+            Label:
+                id: balance
+                text: DiceLibrary.get_balance(app.rpc_connection)
+            Button:
+                text: "Refresh balance"
+                size_hint: 0.3, 1
+                on_release: balance.text = DiceLibrary.get_balance(app.rpc_connection)
+        GridLayout:
+            rows: 1
+            size_hint: 1, 0.1
+            Label:
+                text: "Tables list:"
+            Label:
+                text: "Table info:"
+        BoxLayout:
+            id: mainbox
+            orientation: 'horizontal'
+            ScrollView:
+                id: tables_scroll
+                ListView:
+                    size_hint: 1, 1
+                    name: 'tableslist'
+                    id: tableslist
+                    adapter: ListAdapter(data = DiceLibrary.get_tables_list(app.rpc_connection), cls = 'TableListItemButton')
+            ScrollView:
+                Label:
+                    id: tableinformation
+                    text: "<----- Choose a table to start the GAME!"
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    halign: 'left'
+                    valign: 'top'
+        GridLayout:
+            size_hint: 1, 0.25
+            rows: 2
+            RefreshTablesListButton:
+                id: refreshtableslist
+                text: "Refresh tables list"
+                size_hint: 1, 0.15
+                on_release: tableslist.adapter.data = DiceLibrary.get_tables_list(app.rpc_connection)
+            CreateTableButton:
+                id: createtable
+                text: "Open new table"
+                size_hint: 1, 0.15
+                on_release: root.manager.current = "tablecreation"
+            Button:
+                id: changerpc
+                text: "Change RPC connection credentials"
+                size_hint: 1, 0.15
+                on_release: root.manager.current = "login_page"
+            BetScreenButton:
+                id: betscreenbutton
+                text: "Place bet"
+                size_hint: 1, 0.15
+
+
+<TableCreationPage>:
+    name: "tablecreation"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            id: creationstatus
+            text: "Input your table details"
+            size_hint: 1, 0.2
+            text_size: self.size
+            markup: True
+            valign: "center"
+            halign: "center"
+        GridLayout:
+            rows: 6
+            size_hint: 1, 0.5
+            Label:
+                text: "Table name:"
+                size: self.texture_size
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+            TextInput:
+                id: tablename
+            Label:
+                text: "Table funding:"
+                size: self.texture_size
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+            TextInput:
+                id: tablefunds
+            Label:
+                text: "Minimal bet:"
+                size: self.texture_size
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+            TextInput:
+                id: minbet
+            Label:
+                text: "Maximal bet:"
+                size: self.texture_size
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+            TextInput:
+                id: maxbet
+            Label:
+                text: "Maximal odds:"
+                size: self.texture_size
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+            TextInput:
+                id: maxodds
+            Label:
+                text: "Timeout blocks:"
+                size: self.texture_size
+                text_size: self.size
+                valign: 'middle'
+                halign: 'center'
+            TextInput:
+                id: timeoutblocks
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.1
+            Button:
+                id: createchanelinit
+                text: "Open table"
+                size_hint: 0.5, 1
+                on_release: root.create_table()
+            Button:
+                id: back
+                text: "Back"
+                size_hint: 0.5, 1
+                on_release: root.manager.current = "user"
+
+
+<BetPlacePage>:
+    name: "betplacepage"
+    on_enter: BetAmountSlider.BetAmountSlider.set_slider_values(self.ids.betamountslider)
+    on_enter: OddsSlider.OddsSlider.set_slider_values(self.ids.oddsslider)
+    on_enter: betamount.text = "0"
+    on_enter: betstatus.text = "Bet status"
+    on_enter: selected_table.text = app.active_table_id
+    on_enter: minbet.text = str(RpcLibrary.dice_info(app.rpc_connection, app.active_table_id)["minbet"])
+    on_enter: maxbet.text = str(RpcLibrary.dice_info(app.rpc_connection, app.active_table_id)["maxbet"])
+    on_enter: maxodds.text = str(RpcLibrary.dice_info(app.rpc_connection, app.active_table_id)["maxodds"])
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            id: tableinfotext
+            text: ""
+            size: self.texture_size
+            text_size: self.size
+        GridLayout:
+            rows: 4
+            Label:
+                text: "Selected table: "
+            Label:
+                id: selected_table
+                text: "0"
+            Label:
+                text: "Min. bet: "
+            Label:
+                id: minbet
+                text: "0"
+            Label:
+                text: "Max. bet: "
+            Label:
+                id: maxbet
+                text: "0"
+            Label:
+                text: "Max. odds: "
+            Label:
+                id: maxodds
+                text: "0"
+        Label:
+            text: "Choose bet amount:"
+        BetAmountSlider:
+            id: betamountslider
+            max: 10
+            step: 1
+            on_touch_move: betamount.text = str(self.value)
+        TextInput:
+            id: betamount
+            text: "0"
+        Label:
+            text: "Set desired odds:"
+        OddsSlider:
+            id: oddsslider
+            on_touch_move: oddsamount.text = str(self.value)
+        TextInput:
+            id: oddsamount
+            text: "0"
+        Label:
+            id: betstatus
+            text: "Bet status"
+        BoxLayout:
+            orientation: "horizontal"
+            PlaceBetButton:
+                id: placebet
+                text: "Place bet"
+                on_release: self.place_bet()
+                size_hint: 0.5, 1
+            Button:
+                id: back
+                text: "Back"
+                size_hint: 0.5, 1
+                on_release: root.manager.current = "user"
+
