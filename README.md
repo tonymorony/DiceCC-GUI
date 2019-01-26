@@ -21,7 +21,7 @@ And Komodo daemon was built from FSM branch of https://github.com/jl777/komodo/
 Pre-built packages are under development.
 ```
 sudo add-apt-repository ppa:kivy-team/kivy
-sudo apt-get install python3-pip libssl-dev cython3 libgl-dev git python3-kivy
+sudo apt-get install python3-pip libssl-dev cython3 libgl-dev git python3-kivy libcurl4-openssl-dev libssl-dev
 pip3 install requests wheel python-bitcoinlib slick-bitcoinrpc pygame
 git clone https://github.com/tonymorony/DiceCC-GUI
 cd DiceCC-GUI
